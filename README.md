@@ -23,13 +23,12 @@ AcousticDeforestCore/
   README.md
   library.properties
   keywords.txt
-  src/
-    AcousticDeforestCore.h
-    protocol.h / protocol.cpp
-    lora_link.h / lora_link.cpp
-    vr_link.h / vr_link.cpp
-    event_model.h
-    logger.h
+  AcousticDeforestCore.h
+  protocol.h / protocol.cpp
+  lora_link.h / lora_link.cpp
+  vr_link.h / vr_link.cpp
+  event_model.h
+  logger.h
   examples/
     base_ack/base_ack.ino
     sensor_tx/sensor_tx.ino
