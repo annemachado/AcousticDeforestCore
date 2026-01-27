@@ -31,7 +31,7 @@ void setup() {
   // MESMOS parâmetros do TX
   LoRa.receive();
 
-  delay(1000);
+  delay(1500);
   Serial.print("# BOOT base freq=");
   Serial.print((uint32_t)LORA_FREQ);
   Serial.print(" sf=");
