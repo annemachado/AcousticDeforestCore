@@ -1,0 +1,29 @@
+KEYWORD1	VrLink
+KEYWORD1	Config
+KEYWORD1	RecognizerStatus
+KEYWORD1	AckMetrics
+KEYWORD1	ReceivedPacket
+KEYWORD1	StatusAlert
+KEYWORD1	Ack
+
+KEYWORD2	begin
+KEYWORD2	poll
+KEYWORD2	check
+KEYWORD2	train_record
+KEYWORD2	load_record
+KEYWORD2	load_records
+KEYWORD2	clear_records
+KEYWORD2	init_radio
+KEYWORD2	send_with_ack
+KEYWORD2	receive_status_alert
+KEYWORD2	send_ack_for_seq
+KEYWORD2	pack_status_alert
+KEYWORD2	unpack_status_alert
+KEYWORD2	pack_ack
+KEYWORD2	unpack_ack
+
+LITERAL1	MSG_ALERT
+LITERAL1	MSG_STATUS
+LITERAL1	MSG_ACK
+LITERAL1	STATUS_ALERT_SIZE
+LITERAL1	ACK_SIZE
