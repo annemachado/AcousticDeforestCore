@@ -188,6 +188,7 @@ void print_help() {
   Serial.println("[CMD] set_config <P40|P20|SEM>");
   Serial.println("[CMD] set_phase <VAR|REF|NO_EVENT>");
   Serial.println("[CMD] set_block_dur <seconds>");
+  Serial.println("[CMD] set_block_id <n> (define o proximo block_id; use apos reboot)");
   Serial.println("[CMD] set_notes <texto>");
   Serial.println("[CMD] load <id>");
   Serial.println("[CMD] loadlist <id1> <id2> ...");
@@ -207,6 +208,8 @@ void print_status() {
   Serial.println(phase_id);
   Serial.print("[STATUS] block_duration_s=");
   Serial.println(block_duration_s);
+  Serial.print("[STATUS] next_block_id=");
+  Serial.println(block_id + 1);
   Serial.print("[STATUS] notes_pending=");
   Serial.println(notes_next);
   Serial.print("[STATUS] lora freq=");
@@ -254,6 +257,25 @@ void print_vr_status() {
     Serial.print(status.valid_bitmap, HEX);
     Serial.print(" group_mode=");
     Serial.println(status.group_mode);
+    if (status.valid_bitmap == 0) {
+      Serial.println("[VR] recognizer_slots=(none)");
+    } else {
+      Serial.print("[VR] recognizer_slots=");
+      bool printed = false;
+      for (size_t i = 0; i < 7; i++) {
+        if ((status.valid_bitmap >> i) & 0x01) {
+          if (printed) {
+            Serial.print(",");
+          }
+          Serial.print(status.loaded_ids[i]);
+          printed = true;
+        }
+      }
+      if (!printed) {
+        Serial.print("(none)");
+      }
+      Serial.println();
+    }
   } else {
     Serial.println("[VR] recognizer check failed");
   }
@@ -358,6 +380,25 @@ void handle_command(const String &line) {
     return;
   }
 
+  if (strcmp(token, "SET_BLOCK_ID") == 0) {
+    char *value = strtok(nullptr, " ");
+    uint32_t next_id = 0;
+    if (current_block.active) {
+      Serial.println("[ERR] set_block_id: bloco ativo");
+      return;
+    }
+    if (!parse_uint32(value, next_id) || next_id < 1) {
+      Serial.println("[ERR] set_block_id: valor invalido");
+      return;
+    }
+    block_id = next_id - 1;
+    Serial.print("[CMD] next_block_id=");
+    Serial.println(next_id);
+    Serial.print("[CMD] internal block_id set to ");
+    Serial.println(block_id);
+    return;
+  }
+
   if (strcmp(token, "SET_NOTES") == 0) {
     char *value = strtok(nullptr, "");
     if (!value) {
@@ -406,6 +447,11 @@ void handle_command(const String &line) {
       Serial.println("[ERR] loadlist: informe ids");
       return;
     }
+    if (!vr.clear_records()) {
+      Serial.println("[ERR] loadlist: clear failed");
+      return;
+    }
+    delay(100);
     if (vr.load_records(ids, count)) {
       set_loaded_ids(ids, count);
       Serial.println("[CMD] loadlist ok");
