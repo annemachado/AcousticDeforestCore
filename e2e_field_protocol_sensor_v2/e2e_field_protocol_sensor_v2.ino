@@ -188,6 +188,7 @@ void print_help() {
   Serial.println("[CMD] set_config <P40|P20|SEM>");
   Serial.println("[CMD] set_phase <VAR|REF|NO_EVENT>");
   Serial.println("[CMD] set_block_dur <seconds>");
+  Serial.println("[CMD] set_block_id <n> (define o proximo block_id; use apos reboot)");
   Serial.println("[CMD] set_notes <texto>");
   Serial.println("[CMD] load <id>");
   Serial.println("[CMD] loadlist <id1> <id2> ...");
@@ -207,6 +208,8 @@ void print_status() {
   Serial.println(phase_id);
   Serial.print("[STATUS] block_duration_s=");
   Serial.println(block_duration_s);
+  Serial.print("[STATUS] next_block_id=");
+  Serial.println(block_id + 1);
   Serial.print("[STATUS] notes_pending=");
   Serial.println(notes_next);
   Serial.print("[STATUS] lora freq=");
@@ -355,6 +358,25 @@ void handle_command(const String &line) {
     block_duration_s = dur_s;
     Serial.print("[CMD] block_duration_s=");
     Serial.println(block_duration_s);
+    return;
+  }
+
+  if (strcmp(token, "SET_BLOCK_ID") == 0) {
+    char *value = strtok(nullptr, " ");
+    uint32_t next_id = 0;
+    if (current_block.active) {
+      Serial.println("[ERR] set_block_id: bloco ativo");
+      return;
+    }
+    if (!parse_uint32(value, next_id) || next_id < 1) {
+      Serial.println("[ERR] set_block_id: valor invalido");
+      return;
+    }
+    block_id = next_id - 1;
+    Serial.print("[CMD] next_block_id=");
+    Serial.println(next_id);
+    Serial.print("[CMD] internal block_id set to ");
+    Serial.println(block_id);
     return;
   }
 
