@@ -103,7 +103,8 @@ bool parse_float(const char *token, float &out);
 void start_block(const String &block_type, float distance_m, uint32_t planned_duration_s);
 void finish_block();
 void poll_block();
-void print_csv_header();
+void print_csv_headers_once();
+void print_csv_headers_force();
 void print_block_row(const BlockState &block);
 void print_event_row(const BlockState &block, uint16_t event_idx, const event_model::DetectionEvent &event,
                      uint16_t seq_id, bool ack_ok, const lora_link::AckMetrics &metrics);
@@ -140,7 +141,7 @@ void setup() {
     Serial.println("[ERR] VR init failed");
   }
 
-  print_csv_header();
+  print_csv_headers_once();
   print_help();
 }
 
@@ -157,22 +158,32 @@ void loop() {
   delay(5);
 }
 
-void print_csv_header() {
+void print_csv_headers_once() {
+  static bool csv_header_printed = false;
+  if (csv_header_printed) {
+    return;
+  }
+  print_csv_headers_force();
+  csv_header_printed = true;
+}
+
+void print_csv_headers_force() {
   Serial.println("# CSV: timestamps absolutos em millis(); guard_ms=500 aplicado no inicio do bloco");
+  Serial.println(
+      "row_type,test_id,config_id,phase,block_type,block_id,distance_m,event_idx,t_recog_ms,record_id,seq,"
+      "ack_ok,attempts,tx_first_ms,tx_last_ms,tx_end_ms,ack_rx_ms,rtt_ms,ack_rssi_dbm,ack_snr_db");
   Serial.println(
       "row_type,test_id,config_id,phase,block_type,block_id,distance_m,block_duration_s,t_start_cmd_ms,"
       "t_block_start_ms,t_block_end_ms,block_actual_duration_ms,guard_ms,n_guard_discard,n_recog_total,"
       "first_recog_ms,n_ackok_total,first_ackok_ms,lora_sf,lora_bw,lora_cr,lora_tx_power,lora_freq_hz,"
       "ack_timeout_ms,max_retries,notes");
-  Serial.println(
-      "row_type,test_id,config_id,phase,block_type,block_id,distance_m,event_idx,t_recog_ms,record_id,seq,"
-      "ack_ok,attempts,tx_first_ms,tx_last_ms,tx_end_ms,ack_rx_ms,rtt_ms,ack_rssi_dbm,ack_snr_db");
 }
 
 void print_help() {
   Serial.println("[CMD] help");
   Serial.println("[CMD] status");
   Serial.println("[CMD] vr_status");
+  Serial.println("[CMD] print_headers (headers CSV sao impressos no boot; reimprime manualmente)");
   Serial.println("[CMD] set_test_id <string>");
   Serial.println("[CMD] set_config <P40|P20|SEM>");
   Serial.println("[CMD] set_phase <VAR|REF|NO_EVENT>");
@@ -278,6 +289,11 @@ void handle_command(const String &line) {
 
   if (strcmp(token, "VR_STATUS") == 0) {
     print_vr_status();
+    return;
+  }
+
+  if (strcmp(token, "PRINT_HEADERS") == 0) {
+    print_csv_headers_force();
     return;
   }
 
@@ -733,4 +749,3 @@ uint32_t sum_event_planned_for_config() {
   }
   return event_planned_sum_sem;
 }
-
