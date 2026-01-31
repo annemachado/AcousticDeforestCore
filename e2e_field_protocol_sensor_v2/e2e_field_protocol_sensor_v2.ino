@@ -257,6 +257,25 @@ void print_vr_status() {
     Serial.print(status.valid_bitmap, HEX);
     Serial.print(" group_mode=");
     Serial.println(status.group_mode);
+    if (status.valid_bitmap == 0) {
+      Serial.println("[VR] recognizer_slots=(none)");
+    } else {
+      Serial.print("[VR] recognizer_slots=");
+      bool printed = false;
+      for (size_t i = 0; i < 7; i++) {
+        if ((status.valid_bitmap >> i) & 0x01) {
+          if (printed) {
+            Serial.print(",");
+          }
+          Serial.print(status.loaded_ids[i]);
+          printed = true;
+        }
+      }
+      if (!printed) {
+        Serial.print("(none)");
+      }
+      Serial.println();
+    }
   } else {
     Serial.println("[VR] recognizer check failed");
   }
@@ -428,6 +447,11 @@ void handle_command(const String &line) {
       Serial.println("[ERR] loadlist: informe ids");
       return;
     }
+    if (!vr.clear_records()) {
+      Serial.println("[ERR] loadlist: clear failed");
+      return;
+    }
+    delay(100);
     if (vr.load_records(ids, count)) {
       set_loaded_ids(ids, count);
       Serial.println("[CMD] loadlist ok");
